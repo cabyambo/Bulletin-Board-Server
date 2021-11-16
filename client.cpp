@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
-    while (!closing)
+    while (1)
     {
         // Prompting user for input
         printf("Enter command: ");
@@ -53,6 +53,18 @@ int main(int argc, char *argv[])
         bzero(buffer,256);
         // Get input from user
         fgets(buffer,255,stdin);
+
+        if (strncmp(buffer, "clear", strlen("clear")) == 0) {
+            printf("clear entered\r\n");
+        } else if (strncmp(buffer, "post", strlen("post")) == 0) {
+            printf("post entered\r\n");
+        } else if (strncmp(buffer, "kill", strlen("kill")) == 0) {
+            printf("Closing socket and terminating server. Bye!\r\n");
+        } else if (strncmp(buffer, "quit", strlen("quit")) == 0) {
+            printf("quit entered\r\n");
+        } else {
+            
+        }
         
         // Write input to server
         n = write(sockfd,buffer,strlen(buffer));

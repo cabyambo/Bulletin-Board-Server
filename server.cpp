@@ -59,8 +59,7 @@ int main(int argc, char *argv[])
     if (newsockfd < 0)
         error("ERROR on accept");
 
-    while (strncmp(buffer, "kill", strlen("kill")) != 0)
-    {
+    while (1) {
         // initializes buffer to be all zeros
         bzero(buffer, 256);
         // read in data from client. Blocks until something is sent from client
@@ -70,6 +69,16 @@ int main(int argc, char *argv[])
         printf("Here is the message: %s", buffer);
         if (strncmp(buffer, "test", strlen("test")) == 0) {
             printf("testing someting\r\n");
+        } else if (strncmp(buffer, "clear", strlen("clear")) == 0) {
+            printf("clear entered\r\n");
+        } else if (strncmp(buffer, "post", strlen("post")) == 0) {
+            printf("post entered\r\n");
+        } else if (strncmp(buffer, "kill", strlen("kill")) == 0) {
+            printf("Closing socket and terminating server. Bye!\r\n");
+        } else if (strncmp(buffer, "quit", strlen("quit")) == 0) {
+            printf("quit entered\r\n");
+        } else {
+            
         }
         // Send message back to client
         n = write(newsockfd, "I got your message", 18);
