@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <stdbool.h>
 
 void error(const char *msg)
 {
@@ -16,8 +17,10 @@ void error(const char *msg)
 int main(int argc, char *argv[])
 {
     int sockfd, portno, n;
+    // Address to the server we wish to connect to
     struct sockaddr_in serv_addr;
     struct hostent *server;
+    bool closing = false;
 
     char buffer[256];
     if (argc < 3) {
@@ -41,17 +44,31 @@ int main(int argc, char *argv[])
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
-    printf("Please enter the message: ");
-    bzero(buffer,256);
-    fgets(buffer,255,stdin);
-    n = write(sockfd,buffer,strlen(buffer));
-    if (n < 0)
-         error("ERROR writing to socket");
-    bzero(buffer, 256);
-    n = read(sockfd,buffer,255);
-    if (n < 0)
-         error("ERROR reading from socket");
-    printf("%s\n",buffer);
+
+    while (!closing)
+    {
+        // Prompting user for input
+        printf("Enter command: ");
+        // Clearing buffer
+        bzero(buffer,256);
+        // Get input from user
+        fgets(buffer,255,stdin);
+        
+        // Write input to server
+        n = write(sockfd,buffer,strlen(buffer));
+        if (n < 0)
+            error("ERROR writing to socket");
+        // Clear input
+        bzero(buffer, 256);
+        // Read input from server
+        n = read(sockfd,buffer,255);
+        if (n < 0)
+            error("ERROR reading from socket");
+        // Display input from server
+        printf("%s\r\n",buffer);
+
+    }
+    
     close(sockfd);
     return 0;
 }
