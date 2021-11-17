@@ -90,29 +90,28 @@ int main(int argc, char *argv[])
     listen(sockfd, 5);
     // Size of the client
     clilen = sizeof(cli_addr);
-    newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-    cout << "Client connected" << endl;
-    printWall(&newsockfd, bulletinBoard);
+    // newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+    // cout << "Client connected" << endl;
+    // printWall(&newsockfd, bulletinBoard);
 
     while (1) {
-        // // check if file server is conencted to the client or not
-        // if (fcntl(newsockfd, F_GETFL) < 0 && errno == EBADF) {
-        //     cout << "No client connection" << endl;
-        //     // file descriptor is invalid or closed
-        //     newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-        //     cout << "Client connected" << endl;
-        //     if (newsockfd < 0)
-        //         error("ERROR on accept");
-        //     // Initial printing of the Wall
-        //     printWall(&newsockfd, bulletinBoard);
-        // }
-
         // initializes buffer to be all zeros
         bzero(buffer, 256);
         bzero(name, 80);
         bzero(message, 80);
 
-        send(newsockfd, "Enter command: ", 15, 0);
+        // check if file server is conencted to the client or not
+        if (write(newsockfd, "Enter command: ", 15) < 0) {
+            cout << "No client connection" << endl;
+            // file descriptor is invalid or closed
+            newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+            cout << "Client connected" << endl;
+            if (newsockfd < 0)
+                error("ERROR on accept");
+            // Initial printing of the Wall
+            printWall(&newsockfd, bulletinBoard);
+            write(newsockfd, "Enter command: ", 15);
+        }
 
         // read in data from client. Blocks until something is sent from client
         n = read(newsockfd, buffer, 255);
@@ -122,7 +121,7 @@ int main(int argc, char *argv[])
         printf("%s", buffer);
 
         if (strncmp(buffer, "post", strlen("post")) == 0) {
-            send(newsockfd, "Enter Name: ", 12, 0);
+            write(newsockfd, "Enter Name: ", 12);
             read(newsockfd, name, 80);
             write(newsockfd, "Post [Max length ]: ", 20);
             read(newsockfd, message, 80);
