@@ -22,7 +22,7 @@ void error(const char *msg)
 void printWall(int* socket, queue<string> que) {
     string header = "Wall Contents\n";
     string subHeader = "-------------\n";
-    string empty = "[NO MESSAGES – WALL EMPTY]\n";
+    string empty = "[NO MESSAGES – WALL EMPTY]\n\n";
     write(*socket, header.c_str(), strlen(header.c_str()));
     write(*socket, subHeader.c_str(), strlen(subHeader.c_str()));
     if (que.empty())
@@ -33,8 +33,8 @@ void printWall(int* socket, queue<string> que) {
             write(*socket, "\n", 1);
             que.pop();
         }
+        write(*socket, "\n", 1);
     }
-    write(*socket, "\n", 1);
 }
 
 void addToBoard(queue<string>* que, string message, int maxSize) {
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         bzero(name, 80);
         bzero(message, 80);
 
-        write(newsockfd, "Enter Command: ", 15);
+        write(newsockfd, "Enter command: ", 15);
 
         // read in data from client. Blocks until something is sent from client
         n = read(newsockfd, buffer, 255);
@@ -134,7 +134,14 @@ int main(int argc, char *argv[])
             printWall(&newsockfd, bulletinBoard);
 
         } else if (strncmp(buffer, "clear", strlen("clear")) == 0) {
-            printf("clear entered\r\n");
+            // Empty board
+            while(!bulletinBoard.empty()) bulletinBoard.pop();
+
+            string output = "Wall cleared.\n\n";
+            write(newsockfd, output.c_str(), strlen(output.c_str()));
+
+            printWall(&newsockfd, bulletinBoard);
+
         } else if (strncmp(buffer, "kill", strlen("kill")) == 0) {
             printf("Closing socket and terminating server. Bye!\r\n");
         } else if (strncmp(buffer, "quit", strlen("quit")) == 0) {
