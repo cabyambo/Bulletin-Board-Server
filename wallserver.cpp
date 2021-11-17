@@ -10,6 +10,7 @@
 #include <queue>
 #include <iostream>
 #include <string>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -89,16 +90,18 @@ int main(int argc, char *argv[])
     listen(sockfd, 5);
     // Size of the client
     clilen = sizeof(cli_addr);
-    // Block until a client connects to the server. Returns a new file descriptor
-    newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-    if (newsockfd < 0)
-        error("ERROR on accept");
-    
-    // Initial printing of the Wall
-    printWall(&newsockfd, bulletinBoard);
-
 
     while (1) {
+        // check if file server is conencted to the client or not
+        if (fcntl(newsockfd, F_GETFL) < 0 && errno == EBADF) {
+            // file descriptor is invalid or closed
+            newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+            if (newsockfd < 0)
+                error("ERROR on accept");
+            // Initial printing of the Wall
+            printWall(&newsockfd, bulletinBoard);
+        }
+
         // initializes buffer to be all zeros
         bzero(buffer, 256);
         bzero(name, 80);
@@ -143,18 +146,16 @@ int main(int argc, char *argv[])
             printWall(&newsockfd, bulletinBoard);
 
         } else if (strncmp(buffer, "kill", strlen("kill")) == 0) {
-            printf("Closing socket and terminating server. Bye!\r\n");
+            string output = "Closing socket and terminating server. Bye!\n";
+            write(newsockfd, output.c_str(), strlen(output.c_str()));
+            break;
         } else if (strncmp(buffer, "quit", strlen("quit")) == 0) {
-            printf("quit entered\r\n");
+            string output = "Come back soon. Bye!\n";
+            write(newsockfd, output.c_str(), strlen(output.c_str()));
+            close(newsockfd);
         } else {
             write(newsockfd, "Command not recognized\n", 23);
         }
-
-        // Send message back to client
-        
-        // n = write(newsockfd, "I got your message", 18);
-        // if (n < 0)
-        //     error("ERROR writing to socket\r\n");
     }
     
     
