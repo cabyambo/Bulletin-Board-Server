@@ -40,17 +40,17 @@ void printWall(int* socket, queue<string> que) {
 
 void addToBoard(queue<string>* que, string message, int maxSize) {
     if (que->size() >= maxSize) {
-
+        que->pop();
     }
-
     que->push(message);
 }
 
 int main(int argc, char *argv[])
 {
     // file descriptors
-    int sockfd, portno;
+    int sockfd;
     int newsockfd = -1000;
+    int portno = 5514;
     // sixe of the address of the client
     socklen_t clilen;
     // server reads character from socket connection into here
@@ -58,18 +58,19 @@ int main(int argc, char *argv[])
     char name[80];
     char message[80];
     queue<string> bulletinBoard;
-    int maxLength;
+    int maxLength = 20;
     // struct containing an internet address. Defined in netinet/in.h
     // server contains address of server, cli contains address of client
     struct sockaddr_in serv_addr, cli_addr;
     // number of characters read or written
     int n;
-    // ensures a port is provided
-    if (argc < 2)
-    {
-        fprintf(stderr, "ERROR, no port provided\n");
-        exit(1);
-    }
+
+    // check if length or port were provided
+    if (argc >= 2)
+        maxLength = atoi(argv[1]);
+    if (argc >= 3)
+        portno = atoi(argv[2]);
+    
     // Creating a new socket. Returns an entry into the file descriptor
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
     // Initializes serv_addr to all zeros
     bzero((char *)&serv_addr, sizeof(serv_addr));
     // Port number that the server will use to listen for connections
-    portno = atoi(argv[1]);
+
     // Trivial
     serv_addr.sin_family = AF_INET;
     // IP address of the machine the server is running on
@@ -103,10 +104,10 @@ int main(int argc, char *argv[])
 
         // check if file server is conencted to the client or not
         if (write(newsockfd, "Enter command: ", 15) < 0) {
-            cout << "No client connection" << endl;
+            // cout << "No client connection" << endl;
             // file descriptor is invalid or closed
             newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-            cout << "Client connected" << endl;
+            // cout << "Client connected" << endl;
             if (newsockfd < 0)
                 error("ERROR on accept");
             // Initial printing of the Wall
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
         if (n < 0)
             error("ERROR reading from socket\r\n");
 
-        printf("%s", buffer);
+        // printf("%s", buffer);
 
         if (strncmp(buffer, "post", strlen("post")) == 0) {
             write(newsockfd, "Enter Name: ", 12);
@@ -138,7 +139,7 @@ int main(int argc, char *argv[])
 
             string completeMessage = n + ": " + m;
 
-            addToBoard(&bulletinBoard, completeMessage, 10);
+            addToBoard(&bulletinBoard, completeMessage, maxLength);
             printWall(&newsockfd, bulletinBoard);
 
         } else if (strncmp(buffer, "clear", strlen("clear")) == 0) {
