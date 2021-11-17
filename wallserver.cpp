@@ -49,7 +49,8 @@ void addToBoard(queue<string>* que, string message, int maxSize) {
 int main(int argc, char *argv[])
 {
     // file descriptors
-    int sockfd, newsockfd, portno;
+    int sockfd, portno;
+    int newsockfd = -1000;
     // sixe of the address of the client
     socklen_t clilen;
     // server reads character from socket connection into here
