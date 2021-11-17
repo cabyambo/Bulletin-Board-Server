@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
     socklen_t clilen;
     // server reads character from socket connection into here
     char buffer[256];
-    char name[80];
-    char message[80];
+    char name[256];
+    char message[256];
     queue<string> bulletinBoard;
     int maxLength = 20;
     // struct containing an internet address. Defined in netinet/in.h
@@ -99,8 +99,8 @@ int main(int argc, char *argv[])
     while (1) {
         // initializes buffer to be all zeros
         bzero(buffer, 256);
-        bzero(name, 80);
-        bzero(message, 80);
+        bzero(name, 256);
+        bzero(message, 256);
 
         // check if file server is conencted to the client or not
         if (write(newsockfd, "Enter command: ", 15) < 0) {
@@ -124,23 +124,33 @@ int main(int argc, char *argv[])
 
         if (strncmp(buffer, "post", strlen("post")) == 0) {
             write(newsockfd, "Enter Name: ", 12);
-            read(newsockfd, name, 80);
-            write(newsockfd, "Post [Max length ]: ", 20);
-            read(newsockfd, message, 80);
-            write(newsockfd, "Successfully tagged the wall.\n\n", 31);
+            read(newsockfd, name, 256);
+            write(newsockfd, "Post [Max length ", 17);
 
-            string n, m;
-            n = string(name);
-            m = string(message);
+            // Get max length
+            int max = 80 - strlen(name) - 1;
 
-            // Remove null terminators
-            n.pop_back();
-            m.pop_back();
+            write(newsockfd, to_string(max).c_str(), strlen(to_string(max).c_str()));
+            write(newsockfd, "]: ", 3);
+            read(newsockfd, message, 256);
+            if (strlen(message) > max + 1) {
+                write(newsockfd, "Error: message is too long!\n\n", 29);
+            } else {
+                write(newsockfd, "Successfully tagged the wall.\n\n", 31);
 
-            string completeMessage = n + ": " + m;
+                string n, m;
+                n = string(name);
+                m = string(message);
 
-            addToBoard(&bulletinBoard, completeMessage, maxLength);
-            printWall(&newsockfd, bulletinBoard);
+                // Remove null terminators
+                n.pop_back();
+                m.pop_back();
+
+                string completeMessage = n + ": " + m;
+
+                addToBoard(&bulletinBoard, completeMessage, maxLength);
+                printWall(&newsockfd, bulletinBoard);
+            }
 
         } else if (strncmp(buffer, "clear", strlen("clear")) == 0) {
             // Empty board
