@@ -94,8 +94,10 @@ int main(int argc, char *argv[])
     while (1) {
         // check if file server is conencted to the client or not
         if (fcntl(newsockfd, F_GETFL) < 0 && errno == EBADF) {
+            cout << "No client connection" << endl;
             // file descriptor is invalid or closed
             newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+            cout << "Client connected" << endl;
             if (newsockfd < 0)
                 error("ERROR on accept");
             // Initial printing of the Wall
